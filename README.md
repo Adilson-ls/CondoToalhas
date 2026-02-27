@@ -1,34 +1,20 @@
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-## Sobre o Projeto
+# Run and deploy your AI Studio app
 
-Este repositório contém uma aplicação web leve desenvolvida com **Vite** e **React/TypeScript**. O objetivo principal é fornecer uma interface interativa, organizada a partir de componentes em `src/` e tipagens definidas em `types.ts`.
+This contains everything you need to run your app locally.
 
-### Como o Código Funciona
+View your app in AI Studio: https://ai.studio/apps/f313a8d4-b8d2-428d-aa33-914a8c49d632
 
-- **Entrada**: `main.tsx` inicializa a aplicação e renderiza o componente `App` dentro de `index.html`.
-- **App.tsx**: Componente raiz que coordena a lógica da aplicação, importa estilos de `index.css` e eventualmente gerencia estado global ou contextos.
-- **Tipos**: Arquivo `types.ts` define interfaces e tipos TypeScript usados em todo o projeto para garantir segurança de tipos.
-- **Estilização**: `index.css` contém estilos globais; componentes individuais podem importar CSS adicionais se necessário.
+## Run Locally
 
-A aplicação é empacotada e servida pelo Vite durante o desenvolvimento, com suporte a Hot Module Replacement (HMR).
+**Prerequisites:**  Node.js
 
-### Arquitetura
 
-A arquitetura segue um padrão típico de SPA (Single Page Application):
-
-1. **Camada de Apresentação** (React) – Componentes em `src/` isolam a interface e a lógica de visualização.
-2. **Camada de Tipos/Modelos** – `types.ts` centraliza as definições de dados usadas pelos componentes.
-3. **Build/Dev Server** – Configurado via `vite.config.ts`, facilitando o desenvolvimento local rápido e a geração de builds de produção.
-4. **Configurações** – `tsconfig.json` controla as opções do compilador TypeScript e `package.json` gerencia dependências e scripts.
-
-A estrutura é modular, permitindo fácil expansão com novos componentes, serviços ou integrações API.
-
-## Executando Localmente
-
-**Pré-requisitos:** Node.js
-
-1. Instale as dependências:
+1. Install dependencies:
    `npm install`
-2. Defina a variável `GEMINI_API_KEY` em [.env.local](.env.local) com sua chave Gemini API (caso a funcionalidade de API seja necessária).
-3. Execute o app:
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
    `npm run dev`

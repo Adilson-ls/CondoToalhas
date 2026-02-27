@@ -102,10 +102,11 @@ const CHART_DATA = [
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'inventory' | 'settings'>('dashboard');
+  const [historyFilter, setHistoryFilter] = useState<'all' | 'in' | 'out'>('all');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [inventory, setInventory] = useState<InventoryState>(INITIAL_INVENTORY);
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
-  const [showModal, setShowModal] = useState<'use' | 'transfer' | null>(null);
+  const [showModal, setShowModal] = useState<'use' | 'transfer' | 'laundry' | null>(null);
   const [thresholds, setThresholds] = useState<AlertThresholds>({ clean: 25, dirty: 40, laundry: 15 });
 
   useEffect(() => {
@@ -251,6 +252,48 @@ export default function App() {
                 exit={{ opacity: 0, y: -10 }}
                 className="max-w-7xl mx-auto space-y-6"
               >
+                {/* Primary Actions at the Top */}
+                <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button 
+                    onClick={() => setShowModal('use')}
+                    className="flex items-center gap-4 p-5 bg-orange-500 text-white rounded-2xl shadow-lg shadow-orange-500/20 active:scale-[0.98] transition-all hover:bg-orange-600 group"
+                  >
+                    <div className="size-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Plus size={28} />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-lg font-bold">Registrar Uso</p>
+                      <p className="text-xs text-white/80 font-medium uppercase tracking-wider">Saída de Toalhas</p>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => setShowModal('transfer')}
+                    className="flex items-center gap-4 p-5 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all hover:bg-blue-700 group"
+                  >
+                    <div className="size-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <ArrowRightLeft size={28} />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-lg font-bold">Transferir</p>
+                      <p className="text-xs text-white/80 font-medium uppercase tracking-wider">Movimentar Estoque</p>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => setShowModal('laundry')}
+                    className="flex items-center gap-4 p-5 bg-emerald-600 text-white rounded-2xl shadow-lg shadow-emerald-600/20 active:scale-[0.98] transition-all hover:bg-emerald-700 group"
+                  >
+                    <div className="size-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Truck size={28} />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-lg font-bold">Lavanderia</p>
+                      <p className="text-xs text-white/80 font-medium uppercase tracking-wider">Enviar para Lavar</p>
+                    </div>
+                  </button>
+                </section>
+
                 {inventory.gym < thresholds.clean && (
                   <div className="flex items-center gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-900/30 rounded-2xl">
                     <AlertTriangle className="text-orange-600" size={20} />
@@ -356,35 +399,6 @@ export default function App() {
                         ))}
                       </div>
                     </section>
-
-                    <section className="space-y-4">
-                      <h3 className="text-slate-900 dark:text-white text-base font-bold">Ações Rápidas</h3>
-                      <button 
-                        onClick={() => setShowModal('use')}
-                        className="flex items-center gap-4 w-full p-4 bg-orange-500 text-white rounded-xl shadow-lg active:scale-[0.98] transition-transform"
-                      >
-                        <div className="size-10 rounded-lg bg-black/10 flex items-center justify-center">
-                          <Plus size={24} />
-                        </div>
-                        <div className="text-left">
-                          <p className="font-bold">Registrar Uso</p>
-                          <p className="text-xs text-white/80">Marcar toalhas como sujas</p>
-                        </div>
-                      </button>
-                      <div className="grid grid-cols-2 gap-3">
-                        <button 
-                          onClick={() => setShowModal('transfer')}
-                          className="flex flex-col items-center justify-center gap-2 p-4 bg-blue-600 text-white rounded-xl active:scale-[0.98] transition-transform"
-                        >
-                          <ArrowRightLeft size={24} />
-                          <span className="text-xs font-bold">Transferir</span>
-                        </button>
-                        <button className="flex flex-col items-center justify-center gap-2 p-4 bg-emerald-600 text-white rounded-xl active:scale-[0.98] transition-transform">
-                          <CheckCircle2 size={24} />
-                          <span className="text-xs font-bold">Receber</span>
-                        </button>
-                      </div>
-                    </section>
                   </div>
                 </div>
               </motion.div>
@@ -401,13 +415,58 @@ export default function App() {
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                   <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                     <div className="flex gap-4">
-                      <button className="text-sm font-bold text-orange-500 border-b-2 border-orange-500 pb-1">Toda a Atividade</button>
-                      <button className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">Entradas</button>
-                      <button className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">Saídas</button>
+                      <button 
+                        onClick={() => setHistoryFilter('all')}
+                        className={cn(
+                          "text-sm font-bold pb-1 transition-all",
+                          historyFilter === 'all' ? "text-orange-500 border-b-2 border-orange-500" : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                        )}
+                      >
+                        Toda a Atividade
+                      </button>
+                      <button 
+                        onClick={() => setHistoryFilter('in')}
+                        className={cn(
+                          "text-sm font-bold pb-1 transition-all",
+                          historyFilter === 'in' ? "text-orange-500 border-b-2 border-orange-500" : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                        )}
+                      >
+                        Entradas
+                      </button>
+                      <button 
+                        onClick={() => setHistoryFilter('out')}
+                        className={cn(
+                          "text-sm font-bold pb-1 transition-all",
+                          historyFilter === 'out' ? "text-orange-500 border-b-2 border-orange-500" : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                        )}
+                      >
+                        Saídas
+                      </button>
                     </div>
                   </div>
                   <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {transactions.map(trx => (
+                    {transactions
+                      .filter(trx => {
+                        if (historyFilter === 'all') return true;
+                        if (historyFilter === 'in') return trx.type === 'IN' || trx.type === 'LAUNDRY_RECEIVE';
+                        if (historyFilter === 'out') return trx.type === 'OUT' || trx.type === 'LAUNDRY_SEND';
+                        return true;
+                      }).length === 0 && (
+                        <div className="p-12 text-center">
+                          <div className="size-16 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4 text-slate-300">
+                            <History size={32} />
+                          </div>
+                          <p className="text-slate-500 font-medium">Nenhuma transação encontrada para este filtro.</p>
+                        </div>
+                      )}
+                    {transactions
+                      .filter(trx => {
+                        if (historyFilter === 'all') return true;
+                        if (historyFilter === 'in') return trx.type === 'IN' || trx.type === 'LAUNDRY_RECEIVE';
+                        if (historyFilter === 'out') return trx.type === 'OUT' || trx.type === 'LAUNDRY_SEND';
+                        return true;
+                      })
+                      .map(trx => (
                       <div key={trx.id} className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                         <div className="flex items-center gap-4">
                           <div className={cn(
@@ -445,70 +504,80 @@ export default function App() {
                 exit={{ opacity: 0, y: -20 }}
                 className="max-w-7xl mx-auto space-y-8"
               >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Catálogo de Itens</h3>
-                    <p className="text-slate-500">Gestão detalhada por categoria e localização</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-colors">
-                      <Search size={16} />
-                      Filtrar
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl text-sm font-bold hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20">
-                      <Plus size={16} />
-                      Novo Item
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <InventoryCard 
-                    title="Toalhas de Banho"
-                    image="https://picsum.photos/seed/bath/600/400?blur=1"
-                    quantity={450}
-                    location="Almoxarifado Central"
-                    status="Em Estoque"
-                    color="emerald"
-                  />
-                  <InventoryCard 
-                    title="Toalhas de Piscina"
-                    image="https://picsum.photos/seed/pool/600/400?blur=1"
-                    quantity={280}
-                    location="Deck Edifício A"
-                    status="Uso Intenso"
-                    color="blue"
-                  />
-                  <InventoryCard 
-                    title="Toalhas de Academia"
-                    image="https://picsum.photos/seed/gym/600/400?blur=1"
-                    quantity={120}
-                    location="Fitness Center"
-                    status="Crítico"
-                    color="orange"
-                  />
-                  <InventoryCard 
-                    title="Kits de Rosto"
-                    image="https://picsum.photos/seed/face/600/400?blur=1"
-                    quantity={390}
-                    location="Vestiários"
-                    status="Normal"
-                    color="slate"
-                  />
-                </div>
-
-                <section className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-                  <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                    <h4 className="font-bold text-slate-900 dark:text-white">Distribuição por Unidade</h4>
-                  </div>
-                  <div className="p-6">
-                    <div className="space-y-6">
-                      <LocationRow name="Torre Alpha" percentage={65} color="orange" />
-                      <LocationRow name="Torre Beta" percentage={42} color="blue" />
-                      <LocationRow name="Área Comum / Lazer" percentage={88} color="emerald" />
+                {/* Inventory Header Summary */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Disponível</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-bold text-slate-900 dark:text-white">{inventory.clean + inventory.gym}</p>
+                      <span className="text-xs font-medium text-emerald-500">Limpas</span>
                     </div>
                   </div>
-                </section>
+                  <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Processamento</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-bold text-slate-900 dark:text-white">{inventory.dirty + inventory.laundry}</p>
+                      <span className="text-xs font-medium text-orange-500">Sujas/Lav.</span>
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Giro Mensal</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-bold text-slate-900 dark:text-white">1.2k</p>
+                      <span className="text-xs font-medium text-blue-500">+12%</span>
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Patrimônio</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-bold text-slate-900 dark:text-white">{totalInventory}</p>
+                      <span className="text-xs font-medium text-slate-500">Total</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <section className="lg:col-span-3 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                      <div>
+                        <h4 className="text-xl font-bold text-slate-900 dark:text-white">Estado de Conservação</h4>
+                        <p className="text-sm text-slate-500">Análise qualitativa do patrimônio têxtil</p>
+                      </div>
+                      <div className="flex gap-4">
+                        <div className="flex items-center gap-2">
+                          <div className="size-3 rounded-full bg-emerald-500"></div>
+                          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Novas</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="size-3 rounded-full bg-blue-500"></div>
+                          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Bom Estado</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="size-3 rounded-full bg-orange-500"></div>
+                          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Desgaste</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        <p className="text-4xl font-bold text-emerald-500 mb-1">72%</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight">Novas</p>
+                        <p className="text-xs text-slate-500 mt-2">Itens adquiridos nos últimos 3 meses com fibras intactas.</p>
+                      </div>
+                      <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        <p className="text-4xl font-bold text-blue-500 mb-1">18%</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight">Bom Estado</p>
+                        <p className="text-xs text-slate-500 mt-2">Uso regular, maciez preservada e sem fios puxados.</p>
+                      </div>
+                      <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        <p className="text-4xl font-bold text-orange-500 mb-1">10%</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight">Desgaste</p>
+                        <p className="text-xs text-slate-500 mt-2">Próximas ao fim da vida útil. Sugerido reposição em breve.</p>
+                      </div>
+                    </div>
+                  </section>
+                </div>
               </motion.div>
             )}
 
@@ -609,7 +678,7 @@ export default function App() {
             >
               <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  {showModal === 'use' ? 'Registrar Uso' : 'Transferir para Academia'}
+                  {showModal === 'use' ? 'Registrar Uso' : showModal === 'transfer' ? 'Transferir para Academia' : 'Enviar para Lavanderia'}
                 </h3>
                 <button onClick={() => setShowModal(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
                   <X size={24} />
@@ -626,8 +695,10 @@ export default function App() {
                   
                   if (showModal === 'use') {
                     handleAction('OUT', amount, responsible, reason);
-                  } else {
+                  } else if (showModal === 'transfer') {
                     handleAction('TRANSFER', amount, responsible, 'Transferência para Academia');
+                  } else if (showModal === 'laundry') {
+                    handleAction('LAUNDRY_SEND', amount, responsible, 'Enviado para Lavanderia');
                   }
                 }}
                 className="p-6 space-y-6"
