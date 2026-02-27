@@ -20,6 +20,8 @@ import {
   ArrowRightLeft,
   User,
   Info,
+  ShoppingCart,
+  Trash2,
   type LucideIcon
 } from 'lucide-react';
 import { 
@@ -36,7 +38,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { format } from 'date-fns';
+import { format, subMonths, startOfMonth, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { InventoryState, Transaction, TransactionType, AlertThresholds } from './types';
 
@@ -46,59 +48,13 @@ function cn(...inputs: ClassValue[]) {
 
 // Mock Data
 const INITIAL_INVENTORY: InventoryState = {
-  clean: 84,
-  gym: 12,
-  dirty: 45,
-  laundry: 80
+  clean: 70,
+  gym: 0,
+  dirty: 0,
+  laundry: 0
 };
 
-const INITIAL_TRANSACTIONS: Transaction[] = [
-  {
-    id: 'TRX-8825',
-    type: 'TRANSFER',
-    amount: 20,
-    responsible: 'Ricardo M.',
-    timestamp: new Date(),
-    description: 'Estoque ➔ Academia',
-    category: 'Academia'
-  },
-  {
-    id: 'TRX-8821',
-    type: 'LAUNDRY_SEND',
-    amount: 15,
-    responsible: 'João Silva',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-    description: 'Enviado para Lavandaria',
-    category: 'Lavandaria'
-  },
-  {
-    id: 'TRX-8819',
-    type: 'LAUNDRY_RECEIVE',
-    amount: 20,
-    responsible: 'Maria Silva',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5),
-    description: 'Recebido da Lavandaria',
-    category: 'Estoque'
-  },
-  {
-    id: 'TRX-8790',
-    type: 'OUT',
-    amount: 42,
-    responsible: 'Carlos R.',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
-    description: 'Distribuição na Piscina',
-    category: 'Piscina'
-  }
-];
-
-const CHART_DATA = [
-  { name: 'Out', limpas: 400, uso: 300 },
-  { name: 'Nov', limpas: 550, uso: 450 },
-  { name: 'Dez', limpas: 700, uso: 600 },
-  { name: 'Jan', limpas: 450, uso: 350 },
-  { name: 'Fev', limpas: 600, uso: 500 },
-  { name: 'Mar', limpas: 850, uso: 750 },
-];
+const INITIAL_TRANSACTIONS: Transaction[] = [];
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'inventory' | 'settings'>('dashboard');
@@ -106,7 +62,7 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [inventory, setInventory] = useState<InventoryState>(INITIAL_INVENTORY);
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
-  const [showModal, setShowModal] = useState<'use' | 'transfer' | 'laundry' | null>(null);
+  const [showModal, setShowModal] = useState<'use' | 'transfer' | 'laundry' | 'purchase' | 'discard' | 'receive' | null>(null);
   const [thresholds, setThresholds] = useState<AlertThresholds>({ clean: 25, dirty: 40, laundry: 15 });
 
   useEffect(() => {
@@ -120,6 +76,28 @@ export default function App() {
   const totalInventory = useMemo(() => 
     inventory.clean + inventory.gym + inventory.dirty + inventory.laundry
   , [inventory]);
+
+  const chartData = useMemo(() => {
+    const months = Array.from({ length: 6 }, (_, i) => subMonths(new Date(), 5 - i));
+    
+    return months.map(month => {
+      const monthTransactions = transactions.filter(trx => isSameMonth(new Date(trx.timestamp), month));
+      
+      const limpas = monthTransactions
+        .filter(trx => ['PURCHASE', 'IN', 'LAUNDRY_RECEIVE'].includes(trx.type))
+        .reduce((sum, trx) => sum + trx.amount, 0);
+        
+      const uso = monthTransactions
+        .filter(trx => ['OUT', 'TRANSFER', 'LAUNDRY_SEND'].includes(trx.type))
+        .reduce((sum, trx) => sum + trx.amount, 0);
+
+      return {
+        name: format(month, 'MMM', { locale: ptBR }),
+        limpas,
+        uso
+      };
+    });
+  }, [transactions]);
 
   const handleAction = (type: TransactionType, amount: number, responsible: string, description: string) => {
     const newTrx: Transaction = {
@@ -149,6 +127,12 @@ export default function App() {
       if (type === 'LAUNDRY_RECEIVE') {
         next.laundry -= amount;
         next.clean += amount;
+      }
+      if (type === 'PURCHASE') {
+        next.clean += amount;
+      }
+      if (type === 'DISCARD') {
+        next.clean -= amount;
       }
       return next;
     });
@@ -253,7 +237,7 @@ export default function App() {
                 className="max-w-7xl mx-auto space-y-6"
               >
                 {/* Primary Actions at the Top */}
-                <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <button 
                     onClick={() => setShowModal('use')}
                     className="flex items-center gap-4 p-5 bg-orange-500 text-white rounded-2xl shadow-lg shadow-orange-500/20 active:scale-[0.98] transition-all hover:bg-orange-600 group"
@@ -290,6 +274,19 @@ export default function App() {
                     <div className="text-left">
                       <p className="text-lg font-bold">Lavanderia</p>
                       <p className="text-xs text-white/80 font-medium uppercase tracking-wider">Enviar para Lavar</p>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => setShowModal('receive')}
+                    className="flex items-center gap-4 p-5 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all hover:bg-indigo-700 group"
+                  >
+                    <div className="size-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <CheckCircle2 size={28} />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-lg font-bold">Receber</p>
+                      <p className="text-xs text-white/80 font-medium uppercase tracking-wider">Retorno da Lavanderia</p>
                     </div>
                   </button>
                 </section>
@@ -362,7 +359,7 @@ export default function App() {
                     </div>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={CHART_DATA}>
+                        <BarChart data={chartData}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#334155' : '#e2e8f0'} />
                           <XAxis 
                             dataKey="name" 
@@ -547,6 +544,35 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* Inventory Actions */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <button 
+                    onClick={() => setShowModal('purchase')}
+                    className="flex items-center gap-4 p-6 bg-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all hover:bg-emerald-600 group"
+                  >
+                    <div className="size-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <ShoppingCart size={28} />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-lg font-bold">Compra de Toalhas</p>
+                      <p className="text-xs text-white/80 font-medium uppercase tracking-wider">Entrada de Novo Patrimônio</p>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => setShowModal('discard')}
+                    className="flex items-center gap-4 p-6 bg-rose-600 text-white rounded-2xl shadow-lg shadow-rose-600/20 active:scale-[0.98] transition-all hover:bg-rose-700 group"
+                  >
+                    <div className="size-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Trash2 size={28} />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-lg font-bold">Descartar Toalhas</p>
+                      <p className="text-xs text-white/80 font-medium uppercase tracking-wider">Baixa por Desgaste/Dano</p>
+                    </div>
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <section className="lg:col-span-3 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
@@ -689,7 +715,11 @@ export default function App() {
             >
               <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  {showModal === 'use' ? 'Registrar Uso' : showModal === 'transfer' ? 'Transferir para Academia' : 'Enviar para Lavanderia'}
+                  {showModal === 'use' ? 'Registrar Uso' : 
+                   showModal === 'transfer' ? 'Transferir para Academia' : 
+                   showModal === 'laundry' ? 'Enviar para Lavanderia' :
+                   showModal === 'purchase' ? 'Registrar Compra' : 
+                   showModal === 'discard' ? 'Descartar Toalhas' : 'Receber da Lavanderia'}
                 </h3>
                 <button onClick={() => setShowModal(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
                   <X size={24} />
@@ -710,6 +740,12 @@ export default function App() {
                     handleAction('TRANSFER', amount, responsible, 'Transferência para Academia');
                   } else if (showModal === 'laundry') {
                     handleAction('LAUNDRY_SEND', amount, responsible, 'Enviado para Lavanderia');
+                  } else if (showModal === 'purchase') {
+                    handleAction('PURCHASE', amount, responsible, 'Compra de novas toalhas');
+                  } else if (showModal === 'discard') {
+                    handleAction('DISCARD', amount, responsible, reason || 'Baixa de material');
+                  } else if (showModal === 'receive') {
+                    handleAction('LAUNDRY_RECEIVE', amount, responsible, 'Recebido da Lavanderia');
                   }
                 }}
                 className="p-6 space-y-6"

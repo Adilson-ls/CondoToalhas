@@ -1,6 +1,6 @@
 import { LucideIcon } from 'lucide-react';
 
-export type TransactionType = 'IN' | 'OUT' | 'TRANSFER' | 'LAUNDRY_SEND' | 'LAUNDRY_RECEIVE';
+export type TransactionType = 'IN' | 'OUT' | 'TRANSFER' | 'LAUNDRY_SEND' | 'LAUNDRY_RECEIVE' | 'PURCHASE' | 'DISCARD';
 
 export interface Transaction {
   id: string;
