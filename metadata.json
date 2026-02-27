@@ -1,0 +1,5 @@
+{
+  "name": "CondoToalhas",
+  "description": "Sistema profissional de gestão de inventário de toalhas para condomínios com monitoramento em tempo real e alertas de estoque.",
+  "requestFramePermissions": []
+}
