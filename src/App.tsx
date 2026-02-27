@@ -443,6 +443,17 @@ export default function App() {
                         Saídas
                       </button>
                     </div>
+                    <button 
+                      onClick={() => {
+                        if (confirm('Tem certeza que deseja limpar todo o histórico? Esta ação não pode ser desfeita.')) {
+                          setTransactions([]);
+                        }
+                      }}
+                      className="px-4 py-1 text-[10px] text-transparent hover:text-slate-300 dark:hover:text-slate-700 transition-colors cursor-default select-none"
+                      title="Limpar Histórico"
+                    >
+                      Limpar
+                    </button>
                   </div>
                   <div className="divide-y divide-slate-100 dark:divide-slate-800">
                     {transactions
