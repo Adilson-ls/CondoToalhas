@@ -39,6 +39,12 @@ const App = () => {
   const [formData, setFormData] = useState({ amount: 1, responsible: '', origin: 'stock' });
 
   useEffect(() => {
+    if (!auth) {
+      setIsLoading(false);
+      console.warn('Firebase auth não inicializado.');
+      return;
+    }
+
     const init = async () => {
       try {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -57,7 +63,10 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !db) {
+      if (!db) setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     const countsRef = doc(db, 'artifacts', appId, 'public', 'data', 'counts', 'main');
     const historyRef = collection(db, 'artifacts', appId, 'public', 'data', 'history');
@@ -101,6 +110,19 @@ const App = () => {
   };
 
   const closeModal = () => setModal({ ...modal, isOpen: false });
+
+  if (!db) {
+    return (
+      <div className="app-shell">
+        <div className="card-grid">
+          <div className="panel">
+            <h2 className="panel-header">Firebase não configurado</h2>
+            <p>Defina a variável global <code>__firebase_config</code> com suas credenciais.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleConfirm = async (event) => {
     event.preventDefault();
@@ -151,7 +173,7 @@ const App = () => {
     setCounts(nextCounts);
     closeModal();
 
-    if (!user) return;
+    if (!user || !db) return;
 
     try {
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'counts', 'main'), nextCounts);
@@ -169,7 +191,7 @@ const App = () => {
 
   const handleDeleteHistory = async (id) => {
     if (!window.confirm('Deseja realmente apagar este registro?')) return;
-    if (!user) return;
+    if (!user || !db) return;
     try {
       await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'history', id));
     } catch (error) {
