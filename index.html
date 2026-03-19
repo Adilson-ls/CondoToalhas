@@ -1,13 +1,261 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controlo de Toalhas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .fade-in { animation: fadeIn .25s ease-out forwards; }
+    .zoom-in { animation: zoomIn .2s ease-out forwards; }
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-900 pb-20 md:pb-0">
+  <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2 text-blue-600"><i data-lucide="washing-machine" class="w-6 h-6"></i><h1 class="text-xl font-bold tracking-tight text-slate-800">Condo<span class="text-blue-600">Toalhas</span></h1></div>
+      <div class="hidden md:flex gap-4">
+        <button id="tab-btn-dashboard" class="flex items-center gap-2 px-3 py-2 rounded-md font-medium text-sm transition-colors bg-blue-50 text-blue-700"> <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Visão Geral </button>
+        <button id="tab-btn-history" class="flex items-center gap-2 px-3 py-2 rounded-md font-medium text-sm transition-colors text-slate-600 hover:bg-slate-100"> <i data-lucide="history" class="w-4 h-4"></i> Histórico </button>
+      </div>
+    </div>
+  </header>
 
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <section id="view-dashboard" class="space-y-8 fade-in block">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <button data-action="move_to_gym" class="flex items-center justify-center gap-2 bg-white border-2 border-purple-200 hover:border-purple-400 text-purple-700 py-3 px-4 rounded-xl shadow-sm transition-all font-semibold"> <i data-lucide="dumbbell" class="w-5 h-5"></i> Enviar p/ Academia</button>
+        <button data-action="use" class="flex items-center justify-center gap-2 bg-white border-2 border-orange-200 hover:border-orange-400 text-orange-700 py-3 px-4 rounded-xl shadow-sm transition-all font-semibold"> <i data-lucide="plus" class="w-5 h-5"></i> Registar Uso</button>
+        <button data-action="send" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl shadow-sm transition-all font-semibold"> <i data-lucide="arrow-up-right" class="w-5 h-5"></i> Enviar p/ Lavandaria</button>
+        <button data-action="receive" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl shadow-sm transition-all font-semibold"> <i data-lucide="arrow-down-left" class="w-5 h-5"></i> Receber Limpas</button>
+      </div>
+
+      <h2 class="text-lg font-semibold text-slate-800 mt-8 mb-4 flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-5 h-5 text-slate-500"></i> Estoque Atual</h2>
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <article class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col"><span class="text-slate-500 font-medium text-sm mb-1 flex items-center gap-1.5"><i data-lucide="package" class="w-4 h-4 text-emerald-500"></i> Limpas (Estoque)</span><strong id="inv-clean-stock" class="text-3xl font-bold text-slate-800">0</strong></article>
+        <article class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col"><span class="text-slate-500 font-medium text-sm mb-1 flex items-center gap-1.5"><i data-lucide="dumbbell" class="w-4 h-4 text-purple-500"></i> Limpas (Academia)</span><strong id="inv-clean-gym" class="text-3xl font-bold text-slate-800">0</strong></article>
+        <article class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col"><span class="text-slate-500 font-medium text-sm mb-1 flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-4 h-4 text-orange-500"></i> Sujas</span><strong id="inv-dirty" class="text-3xl font-bold text-slate-800">0</strong></article>
+        <article class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col"><span class="text-slate-500 font-medium text-sm mb-1 flex items-center gap-1.5"><i data-lucide="washing-machine" class="w-4 h-4 text-blue-500"></i> Na Lavandaria</span><strong id="inv-laundry" class="text-3xl font-bold text-slate-800">0</strong></article>
+        <article class="bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-700 flex flex-col text-white"><span class="text-slate-300 font-medium text-sm mb-1 flex items-center gap-1.5">Total Património</span><strong id="inv-total" class="text-3xl font-bold">0</strong></article>
+      </div>
+
+      <h2 class="text-lg font-semibold text-slate-800 mt-8 mb-4 flex items-center gap-2"><i data-lucide="package" class="w-5 h-5 text-slate-500"></i> Gestão de Património</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <button data-action="add_new" class="flex items-center justify-center gap-2 bg-white border-2 border-slate-200 hover:border-teal-400 text-teal-700 py-3 px-4 rounded-xl shadow-sm transition-all font-semibold"> <i data-lucide="plus-circle" class="w-5 h-5"></i> Registar Compra (Novas)</button>
+        <button data-action="remove_old" class="flex items-center justify-center gap-2 bg-white border-2 border-slate-200 hover:border-red-400 text-red-700 py-3 px-4 rounded-xl shadow-sm transition-all font-semibold"> <i data-lucide="trash-2" class="w-5 h-5"></i> Descartar Toalhas</button>
+      </div>
+
+      <div class="mt-8">
+        <div class="flex items-center justify-between mb-4"><h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2"><i data-lucide="history" class="w-5 h-5 text-slate-500"></i> Atividade Recente</h2><div class="flex items-center gap-2"><button id="view-all-history" class="text-sm font-medium text-blue-600 hover:text-blue-800">Ver tudo</button><button id="clear-history" class="text-sm font-medium text-red-600 hover:text-red-800">Limpar Histórico</button></div></div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"><div id="recent-activity-list" class="divide-y divide-slate-100"></div></div>
+      </div>
+    </section>
+
+    <section id="view-history" class="fade-in hidden">
+      <h2 class="text-xl font-semibold text-slate-800 mb-6 flex items-center gap-2"><i data-lucide="history" class="w-6 h-6 text-slate-500"></i> Histórico Completo</h2>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"><div id="full-history-list" class="divide-y divide-slate-100"></div></div>
+    </section>
+  </main>
+
+  <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around items-center h-16 px-4 z-20 pb-safe">
+    <button id="mobile-tab-dashboard" class="flex flex-col items-center justify-center w-full h-full space-y-1 text-blue-600"><i data-lucide="layout-dashboard" class="w-6 h-6"></i><span class="text-[10px] font-medium">Dashboard</span></button>
+    <button id="mobile-tab-history" class="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-500"><i data-lucide="history" class="w-6 h-6"></i><span class="text-[10px] font-medium">Histórico</span></button>
+  </div>
+
+  <div id="transaction-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden zoom-in">
+      <div class="flex justify-between items-center p-5 border-b border-slate-100"><h3 id="modal-title" class="text-lg font-semibold text-slate-800">Título</h3><button id="close-modal" class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+      <form id="transaction-form" class="p-5">
+        <div class="mb-4"><label class="block text-sm font-medium text-slate-700 mb-2">Quantidade de Toalhas</label><input id="transaction-amount" type="number" min="1" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg" placeholder="Ex: 20" required /><p id="modal-hint" class="text-xs text-slate-500 mt-2">Disponível: --</p></div>
+        <div id="name-input-group" class="mb-4 hidden"><label class="block text-sm font-medium text-slate-700 mb-2">Nome do Responsável</label><input id="transaction-name" type="text" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg" placeholder="Introduza o nome" /></div>
+        <div id="modal-error" class="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg flex items-start gap-2 hidden"><i data-lucide="alert-circle" class="w-5 h-5 shrink-0"></i><p id="modal-error-text">Erro genérico</p></div>
+        <div class="flex gap-3 mt-6"><button type="button" id="modal-cancel" class="flex-1 px-4 py-3 bg-slate-100 text-slate-700 font-medium rounded-xl hover:bg-slate-200 transition-colors">Cancelar</button><button type="submit" id="modal-submit-btn" class="flex-1 px-4 py-3 font-medium rounded-xl text-white transition-colors bg-blue-600 hover:bg-blue-700">Confirmar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const SELECTORS = {
+      invCleanStock: 'inv-clean-stock', invCleanGym: 'inv-clean-gym', invDirty: 'inv-dirty', invLaundry: 'inv-laundry', invTotal: 'inv-total',
+      recentList: 'recent-activity-list', fullHistory: 'full-history-list', tabDashboard: 'tab-btn-dashboard', tabHistory: 'tab-btn-history', mobileDashboard: 'mobile-tab-dashboard', mobileHistory: 'mobile-tab-history',
+      viewDashboard: 'view-dashboard', viewHistory: 'view-history', modal: 'transaction-modal', title: 'modal-title', hint: 'modal-hint', amount: 'transaction-amount', nameGroup: 'name-input-group', nameInput: 'transaction-name', errorBox: 'modal-error', errorText: 'modal-error-text', form: 'transaction-form', submitBtn: 'modal-submit-btn', closeBtn: 'close-modal', cancelBtn: 'modal-cancel'
+    };
+
+    const DB = {
+      keyInv: 'condo_inventory_html_v4', keyTx: 'condo_transactions_html_v4',
+      init() {
+        if (!localStorage.getItem(this.keyInv)) {
+          localStorage.setItem(this.keyInv, JSON.stringify({ cleanStock: 20, cleanGym: 6, dirty: 6, atLaundry: 10, total: 42 }));
+        }
+        if (!localStorage.getItem(this.keyTx)) {
+          const initialTx = [
+            { id: 1, type: 'receive', amount: 50, date: new Date(Date.now() - 86400000).toISOString(), note: 'Recebido da Lavandaria Central' },
+            { id: 2, type: 'use', amount: 15, date: new Date(Date.now() - 43200000).toISOString(), note: 'Uso na piscina (Fim de semana)' },
+            { id: 3, type: 'send', amount: 80, date: new Date(Date.now() - 10000000).toISOString(), note: 'Envio semanal' }
+          ];
+          localStorage.setItem(this.keyTx, JSON.stringify(initialTx));
+        }
+      },
+      getInventory() { return JSON.parse(localStorage.getItem(this.keyInv)) || { cleanStock: 0, cleanGym: 0, dirty: 0, atLaundry: 0, total: 0 }; },
+      updateInventory(inv) { localStorage.setItem(this.keyInv, JSON.stringify(inv)); },
+      getTransactions() { return JSON.parse(localStorage.getItem(this.keyTx)) || []; },
+      addTransaction(tx) { const txs = this.getTransactions(); txs.unshift(tx); localStorage.setItem(this.keyTx, JSON.stringify(txs)); },
+      clearTransactions() { localStorage.setItem(this.keyTx, JSON.stringify([])); }
+    };
+
+    const app = {
+      state: { activeTab: 'dashboard', modalType: null },
+      elements: {},
+      actionConfig: {
+        move_to_gym: { title: 'Enviar para Academia', hint: (inv) => `Disponível: ${inv.cleanStock} no estoque`, btnClass: 'bg-purple-600 hover:bg-purple-700', name: false },
+        use: { title: 'Registar Uso (Academia)', hint: (inv) => `Disponível: ${inv.cleanGym} na academia`, btnClass: 'bg-orange-600 hover:bg-orange-700', name: false },
+        send: { title: 'Enviar para Lavandaria', hint: (inv) => `Disponível: ${inv.dirty} sujas`, btnClass: 'bg-blue-600 hover:bg-blue-700', name: true },
+        receive: { title: 'Receber da Lavandaria', hint: (inv) => `Disponível: ${inv.atLaundry} na lavandaria. (Irão para o Estoque)`, btnClass: 'bg-emerald-600 hover:bg-emerald-700', name: true },
+        add_new: { title: 'Registar Compra', hint: () => 'As toalhas serão adicionadas ao saldo de Limpas (Estoque).', btnClass: 'bg-teal-600 hover:bg-teal-700', name: false },
+        remove_old: { title: 'Descartar Toalhas', hint: (inv) => `O descarte será retirado do saldo de Limpas no Estoque (Tem ${inv.cleanStock}).`, btnClass: 'bg-red-600 hover:bg-red-700', name: false }
+      },
+      init() {
+        this.cacheElements();
+        this.bindEvents();
+        DB.init();
+        lucide.createIcons();
+        this.renderAll();
+      },
+      cacheElements() {
+        Object.entries(SELECTORS).forEach(([key, id]) => { this.elements[key] = document.getElementById(id); });
+      },
+      bindEvents() {
+        document.querySelectorAll('[data-action]').forEach(btn => btn.addEventListener('click', () => this.openModal(btn.dataset.action)));
+        this.elements.tabDashboard.addEventListener('click', () => this.switchTab('dashboard'));
+        this.elements.tabHistory.addEventListener('click', () => this.switchTab('history'));
+        this.elements.mobileDashboard.addEventListener('click', () => this.switchTab('dashboard'));
+        this.elements.mobileHistory.addEventListener('click', () => this.switchTab('history'));
+        this.elements.closeBtn.addEventListener('click', () => this.closeModal());
+        this.elements.cancelBtn.addEventListener('click', () => this.closeModal());
+        this.elements.form.addEventListener('submit', (e) => this.handleTransaction(e));
+        document.getElementById('view-all-history').addEventListener('click', () => this.switchTab('history'));
+        document.getElementById('clear-history').addEventListener('click', () => this.clearHistory());
+      },
+      renderAll() { this.renderInventory(); this.renderHistory(); this.switchTab(this.state.activeTab); },
+      renderInventory() {
+        const inv = DB.getInventory();
+        this.elements.invCleanStock.textContent = inv.cleanStock;
+        this.elements.invCleanGym.textContent = inv.cleanGym;
+        this.elements.invDirty.textContent = inv.dirty;
+        this.elements.invLaundry.textContent = inv.atLaundry;
+        this.elements.invTotal.textContent = inv.total;
+      },
+      renderHistory() {
+        const transactions = DB.getTransactions();
+        if (transactions.length === 0) {
+          this.elements.fullHistory.innerHTML = '<div class="p-8 text-center text-slate-500">Nenhuma movimentação registada.</div>';
+          this.elements.recentList.innerHTML = '<div class="p-8 text-center text-slate-500 text-sm">Nenhuma movimentação.</div>';
+          return;
+        }
+
+        const fullHTML = [];
+        const recentHTML = [];
+
+        transactions.forEach((tx, index) => {
+          const info = this.getTransactionInfo(tx.type);
+          const dateStr = this.formatDate(tx.date);
+          const prefix = ['use', 'remove_old'].includes(tx.type) ? '-' : ['send', 'move_to_gym'].includes(tx.type) ? '' : '+';
+          fullHTML.push(`<div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition-colors"><div class="flex items-start sm:items-center gap-4"><div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${info.bg}"><i data-lucide="${info.icon}" class="w-5 h-5 ${info.iconColor}"></i></div><div><p class="font-medium text-slate-800">${info.label}</p><div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm text-slate-500 mt-0.5"><span>${dateStr}</span><span class="hidden sm:inline">•</span><span class="italic">${tx.note}</span></div></div></div><div class="font-bold text-xl self-end sm:self-auto ${info.color}">${prefix}${tx.amount}</div></div>`);
+          if (index < 3) {
+            recentHTML.push(`<div class="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full flex items-center justify-center ${info.bg}"><i data-lucide="${info.icon}" class="w-5 h-5 ${info.iconColor}"></i></div><div><p class="font-medium text-slate-800">${info.label}</p><p class="text-sm text-slate-500">${dateStr}</p></div></div><div class="font-bold text-lg ${info.color}">${prefix}${tx.amount}</div></div>`);
+          }
+        });
+
+        this.elements.fullHistory.innerHTML = fullHTML.join('');
+        this.elements.recentList.innerHTML = recentHTML.join('');
+        lucide.createIcons();
+      },
+      switchTab(tabName) {
+        this.state.activeTab = tabName;
+        const activeClass = "bg-blue-50 text-blue-700";
+        const inactiveClass = "text-slate-600 hover:bg-slate-100";
+        this.elements.tabDashboard.className = `flex items-center gap-2 px-3 py-2 rounded-md font-medium text-sm transition-colors ${tabName === 'dashboard' ? activeClass : inactiveClass}`;
+        this.elements.tabHistory.className = `flex items-center gap-2 px-3 py-2 rounded-md font-medium text-sm transition-colors ${tabName === 'history' ? activeClass : inactiveClass}`;
+        this.elements.mobileDashboard.className = `flex flex-col items-center justify-center w-full h-full space-y-1 ${tabName === 'dashboard' ? 'text-blue-600' : 'text-slate-500'}`;
+        this.elements.mobileHistory.className = `flex flex-col items-center justify-center w-full h-full space-y-1 ${tabName === 'history' ? 'text-blue-600' : 'text-slate-500'}`;
+        this.elements.viewDashboard.classList.toggle('hidden', tabName !== 'dashboard');
+        this.elements.viewHistory.classList.toggle('hidden', tabName !== 'history');
+      },
+      openModal(type) {
+        this.state.modalType = type;
+        const inv = DB.getInventory();
+        const config = this.actionConfig[type];
+        if (!config) return;
+
+        this.elements.title.textContent = config.title;
+        this.elements.hint.textContent = config.hint(inv);
+        this.elements.submitBtn.className = `flex-1 px-4 py-3 font-medium rounded-xl text-white transition-colors ${config.btnClass}`;
+        if (config.name) { this.elements.nameGroup.classList.remove('hidden'); this.elements.nameInput.setAttribute('required', ''); }
+        else { this.elements.nameGroup.classList.add('hidden'); this.elements.nameInput.removeAttribute('required'); }
+
+        this.hideError();
+        this.elements.amount.value = '';
+        this.elements.nameInput.value = '';
+        this.elements.modal.classList.remove('hidden');
+        this.elements.modal.classList.add('flex');
+        setTimeout(() => this.elements.amount.focus(), 80);
+      },
+      closeModal() { this.elements.modal.classList.add('hidden'); this.elements.modal.classList.remove('flex'); this.state.modalType = null; },
+      clearHistory() { DB.clearTransactions(); this.renderHistory(); this.switchTab('history'); },
+      showError(msg) { this.elements.errorText.textContent = msg; this.elements.errorBox.classList.remove('hidden'); },
+      hideError() { this.elements.errorBox.classList.add('hidden'); },
+      handleTransaction(e) {
+        e.preventDefault();
+        const qty = Number(this.elements.amount.value || 0);
+        if (!Number.isInteger(qty) || qty <= 0) { this.showError('Por favor, insira uma quantidade válida maior que zero.'); return; }
+
+        const inv = DB.getInventory();
+        const type = this.state.modalType;
+        if (!type) return;
+
+        const corrections = {
+          move_to_gym: () => { if (qty > inv.cleanStock) return `Atenção: Apenas tem ${inv.cleanStock} toalhas limpas no estoque.`; inv.cleanStock -= qty; inv.cleanGym += qty; },
+          use: () => { if (qty > inv.cleanGym) return `Atenção: Apenas tem ${inv.cleanGym} toalhas limpas na academia.`; inv.cleanGym -= qty; inv.dirty += qty; },
+          send: () => { if (qty > inv.dirty) return `Atenção: Apenas tem ${inv.dirty} toalhas sujas para enviar.`; inv.dirty -= qty; inv.atLaundry += qty; },
+          receive: () => { if (qty > inv.atLaundry) return `Atenção: Existem apenas ${inv.atLaundry} toalhas na lavandaria.`; inv.atLaundry -= qty; inv.cleanStock += qty; },
+          add_new: () => { inv.cleanStock += qty; inv.total += qty; },
+          remove_old: () => { if (qty > inv.cleanStock) return `Atenção: Apenas pode descartar toalhas do saldo do estoque (tem ${inv.cleanStock}).`; inv.cleanStock -= qty; inv.total -= qty; }
+        };
+
+        const error = corrections[type]?.();
+        if (error) { this.showError(error); return; }
+
+        DB.updateInventory(inv);
+        const notes = {
+          move_to_gym: 'Enviado para Academia', use: 'Retirada para uso (Academia)', send: 'Enviado para lavandaria', receive: 'Recebido da lavandaria', add_new: 'Compra de novas toalhas', remove_old: 'Descarte de toalhas (danificadas/velhas)'
+        };
+        let note = notes[type] || 'Movimentação';
+        if (['send', 'receive'].includes(type)) {
+          const nameVal = this.elements.nameInput.value.trim(); if (nameVal) note += ` (Responsável: ${nameVal})`;
+        }
+
+        DB.addTransaction({ id: Date.now(), type, amount: qty, date: new Date().toISOString(), note });
+        this.closeModal(); this.renderAll();
+      },
+      formatDate(dateString) { return new Intl.DateTimeFormat('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(dateString)); },
+      getTransactionInfo(type) {
+        const map = {
+          move_to_gym: { label: 'Enviado p/ Academia', icon: 'dumbbell', iconColor: 'text-purple-500', color: 'text-purple-600', bg: 'bg-purple-100' },
+          use: { label: 'Toalhas Utilizadas', icon: 'alert-circle', iconColor: 'text-orange-500', color: 'text-orange-600', bg: 'bg-orange-100' },
+          send: { label: 'Enviado p/ Lavandaria', icon: 'arrow-up-right', iconColor: 'text-blue-500', color: 'text-blue-600', bg: 'bg-blue-100' },
+          receive: { label: 'Recebido da Lavandaria', icon: 'arrow-down-left', iconColor: 'text-emerald-500', color: 'text-emerald-600', bg: 'bg-emerald-100' },
+          add_new: { label: 'Novas Adicionadas', icon: 'plus-circle', iconColor: 'text-teal-500', color: 'text-teal-600', bg: 'bg-teal-100' },
+          remove_old: { label: 'Toalhas Descartadas', icon: 'trash-2', iconColor: 'text-red-500', color: 'text-red-600', bg: 'bg-red-100' }
+        };
+        return map[type] || { label: 'Desconhecido', icon: 'history', iconColor: 'text-gray-500', color: 'text-gray-600', bg: 'bg-gray-100' };
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => app.init());
+  </script>
+</body>
+</html>
